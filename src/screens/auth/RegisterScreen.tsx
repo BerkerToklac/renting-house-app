@@ -15,19 +15,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { COLORS, SPACING, RADIUS } from '../../navigation/theme';
-import { UserRole } from '../../types';
-
-const ROLES: { key: UserRole; label: string; icon: keyof typeof Ionicons.glyphMap; desc: string }[] = [
-  { key: 'tenant', label: 'Kiracı', icon: 'person', desc: 'Ev kirala, rezervasyon yap' },
-  { key: 'landlord', label: 'Ev Sahibi', icon: 'business', desc: 'İlan ver, ev kirala' },
-];
 
 export const RegisterScreen = ({ navigation }: any) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('tenant');
   const [showPassword, setShowPassword] = useState(false);
   const { register, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
@@ -45,7 +38,8 @@ export const RegisterScreen = ({ navigation }: any) => {
       Alert.alert('Hata', 'Şifre en az 6 karakter olmalıdır.');
       return;
     }
-    const result = await register(name.trim(), email.trim(), password, role);
+    // Yeni kayıtlar her zaman kiracı rolüyle oluşturulur
+    const result = await register(name.trim(), email.trim(), password, 'tenant');
     if (!result.success) {
       Alert.alert('Kayıt Başarısız', result.error ?? 'Bir hata oluştu.');
     }
@@ -66,25 +60,17 @@ export const RegisterScreen = ({ navigation }: any) => {
         <Text style={styles.title}>Hesap Oluştur</Text>
         <Text style={styles.subtitle}>KiraEvim'e hoş geldiniz!</Text>
 
-        {/* Role Selector */}
-        <Text style={styles.sectionLabel}>Hesap Türü</Text>
-        <View style={styles.roleRow}>
-          {ROLES.map((r) => (
-            <TouchableOpacity
-              key={r.key}
-              style={[styles.roleCard, role === r.key && styles.roleCardActive]}
-              onPress={() => setRole(r.key)}
-            >
-              <Ionicons name={r.icon} size={28} color={role === r.key ? COLORS.primary : COLORS.textSecondary} />
-              <Text style={[styles.roleLabel, role === r.key && styles.roleLabelActive]}>{r.label}</Text>
-              <Text style={styles.roleDesc}>{r.desc}</Text>
-              {role === r.key && (
-                <View style={styles.roleCheck}>
-                  <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+        {/* Role Info Banner */}
+        <View style={styles.roleBanner}>
+          <View style={styles.roleBannerIcon}>
+            <Ionicons name="person" size={22} color={COLORS.warning} />
+          </View>
+          <View style={styles.roleBannerText}>
+            <Text style={styles.roleBannerTitle}>Kiracı Hesabı</Text>
+            <Text style={styles.roleBannerDesc}>
+              Ev ara, rezervasyon yap ve ev sahipleriyle iletişim kur.
+            </Text>
+          </View>
         </View>
 
         {/* Form */}
@@ -162,6 +148,14 @@ export const RegisterScreen = ({ navigation }: any) => {
             )}
           </TouchableOpacity>
 
+          {/* Ev sahibi/admin bilgilendirme */}
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle-outline" size={16} color={COLORS.textSecondary} />
+            <Text style={styles.infoText}>
+              Ev sahibi veya admin olarak sisteme dahil edilmek için yöneticinizle iletişime geçin.
+            </Text>
+          </View>
+
           <View style={styles.loginRow}>
             <Text style={styles.loginText}>Zaten hesabın var mı? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -180,23 +174,28 @@ const styles = StyleSheet.create({
   backButton: { marginBottom: SPACING.md, width: 40 },
   title: { fontSize: 28, fontWeight: '800', color: COLORS.text, marginBottom: 4 },
   subtitle: { fontSize: 15, color: COLORS.textSecondary, marginBottom: SPACING.lg },
-  sectionLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: SPACING.sm },
-  roleRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.lg },
-  roleCard: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
+  roleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF9E7',
     borderRadius: RADIUS.md,
     padding: SPACING.md,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-    position: 'relative',
+    marginBottom: SPACING.lg,
+    gap: SPACING.sm,
+    borderWidth: 1.5,
+    borderColor: '#F9E79F',
   },
-  roleCardActive: { borderColor: COLORS.primary, backgroundColor: '#FFF5F5' },
-  roleLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary, marginTop: 6 },
-  roleLabelActive: { color: COLORS.primary },
-  roleDesc: { fontSize: 11, color: COLORS.textSecondary, textAlign: 'center', marginTop: 4 },
-  roleCheck: { position: 'absolute', top: 8, right: 8 },
+  roleBannerIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FDEBD0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  roleBannerText: { flex: 1 },
+  roleBannerTitle: { fontSize: 15, fontWeight: '700', color: COLORS.text },
+  roleBannerDesc: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2, lineHeight: 18 },
   form: {},
   label: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginBottom: SPACING.xs },
   inputWrapper: {
@@ -221,6 +220,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   registerButtonText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    marginTop: SPACING.md,
+    gap: SPACING.xs,
+  },
+  infoText: { flex: 1, fontSize: 12, color: COLORS.textSecondary, lineHeight: 18 },
   loginRow: { flexDirection: 'row', justifyContent: 'center', marginTop: SPACING.md },
   loginText: { color: COLORS.textSecondary, fontSize: 14 },
   loginLink: { color: COLORS.primary, fontSize: 14, fontWeight: '600' },

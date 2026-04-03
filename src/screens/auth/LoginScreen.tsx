@@ -117,7 +117,7 @@ export const LoginScreen = ({ navigation }: any) => {
 
         {/* Demo Login Shortcuts */}
         <View style={styles.demoSection}>
-          <Text style={styles.demoTitle}>Demo Giriş</Text>
+          <Text style={styles.demoTitle}>Hızlı Giriş (Demo)</Text>
           <View style={styles.demoRow}>
             <TouchableOpacity style={[styles.demoButton, { backgroundColor: '#E8F8F0' }]} onPress={() => quickLogin('admin')}>
               <Ionicons name="shield-checkmark" size={18} color={COLORS.success} />
@@ -132,7 +132,7 @@ export const LoginScreen = ({ navigation }: any) => {
               <Text style={[styles.demoLabel, { color: COLORS.warning }]}>Kiracı</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.demoHint}>Şifre: 123456</Text>
+          <Text style={styles.demoHint}>Admin & Ev Sahibi sisteme dahil edilir · Kiracılar kayıt olabilir</Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
